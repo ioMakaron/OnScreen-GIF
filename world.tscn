@@ -1,0 +1,158 @@
+[gd_scene load_steps=11 format=3 uid="uid://bbjpa2uj8mar8"]
+
+[ext_resource type="Script" uid="uid://cfe0nx6gxnqc4" path="res://TransparencyWindow.cs" id="1_f3sb7"]
+[ext_resource type="Script" uid="uid://qo03x1pwfocd" path="res://window_size.gd" id="2_fj7yv"]
+[ext_resource type="Script" uid="uid://bco28lkm48no1" path="res://menu_s.gd" id="2_tlwt5"]
+[ext_resource type="Texture2D" uid="uid://dflftp4qm1buk" path="res://sketch1759514964230.png" id="4_036b0"]
+[ext_resource type="Script" uid="uid://dvp41ct2paqcx" path="res://status_indicator.gd" id="5_dwbse"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_036b0"]
+bg_color = Color(0.19076231, 0.19076234, 0.19076222, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dwbse"]
+bg_color = Color(0.19215687, 0.19215687, 0.19215687, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pkg7o"]
+bg_color = Color(0.19215687, 0.19215687, 0.19215687, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gbfbk"]
+bg_color = Color(0.19215687, 0.19215687, 0.19215687, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ioo17"]
+bg_color = Color(0.19215687, 0.19215687, 0.19215687, 1)
+
+[node name="CanvasLayer" type="CanvasLayer"]
+layer = 3
+follow_viewport_enabled = true
+
+[node name="Menu" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_tlwt5")
+
+[node name="MarginContainer" type="MarginContainer" parent="Menu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 1170
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 540
+
+[node name="Panel" type="Panel" parent="Menu/MarginContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Menu/MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Menu/MarginContainer/Panel/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="SelectImgButton" type="Button" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Select img"
+
+[node name="CloneBtn" type="Button" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Clone img"
+
+[node name="EditBtn" type="CheckButton" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_036b0")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dwbse")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pkg7o")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_gbfbk")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_ioo17")
+text = "Edit mode"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Scale"
+
+[node name="Control" type="Control" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SpinBox" type="SpinBox" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+step = 0.01
+value = 1.0
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "FPS"
+
+[node name="Control2" type="Control" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FpsSpinBox" type="SpinBox" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+min_value = 10.0
+value = 60.0
+
+[node name="HideButton" type="Button" parent="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Hide"
+
+[node name="Node2D" type="Node2D" parent="."]
+script = ExtResource("1_f3sb7")
+
+[node name="WindowSize" type="Node" parent="Node2D"]
+script = ExtResource("2_fj7yv")
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+force_native = true
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.GIF")
+use_native_dialog = true
+
+[node name="StatusIndicator" type="StatusIndicator" parent="."]
+icon = ExtResource("4_036b0")
+menu = NodePath("PopupMenu")
+script = ExtResource("5_dwbse")
+
+[node name="PopupMenu" type="PopupMenu" parent="StatusIndicator"]
+prefer_native_menu = true
+item_count = 2
+item_0/text = "menu"
+item_0/checkable = 1
+item_0/checked = true
+item_0/id = 0
+item_1/text = "quit"
+item_1/id = 1
+
+[connection signal="pressed" from="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/SelectImgButton" to="Menu" method="_on_select_img_button_pressed"]
+[connection signal="pressed" from="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/CloneBtn" to="Menu" method="_on_clone_btn_pressed"]
+[connection signal="toggled" from="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/EditBtn" to="Menu" method="_on_edit_btn_toggled"]
+[connection signal="value_changed" from="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/SpinBox" to="Menu" method="_on_spin_box_value_changed"]
+[connection signal="value_changed" from="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer2/FpsSpinBox" to="Menu" method="_on_fps_spin_box_value_changed"]
+[connection signal="pressed" from="Menu/MarginContainer/Panel/MarginContainer/VBoxContainer/HideButton" to="StatusIndicator" method="_on_hide_button_pressed"]
+[connection signal="file_selected" from="FileDialog" to="Menu" method="_on_file_dialog_file_selected"]
+[connection signal="index_pressed" from="StatusIndicator/PopupMenu" to="StatusIndicator" method="_on_popup_menu_index_pressed"]

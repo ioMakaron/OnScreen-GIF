@@ -1,0 +1,123 @@
+[gd_scene load_steps=4 format=3 uid="uid://badxfq7aje5r6"]
+
+[ext_resource type="Script" uid="uid://bvs4vsvms2ku2" path="res://control.gd" id="1_0fbet"]
+[ext_resource type="Texture2D" uid="uid://dflftp4qm1buk" path="res://sketch1759514964230.png" id="2_ee4bf"]
+[ext_resource type="Script" uid="uid://dvp41ct2paqcx" path="res://status_indicator.gd" id="5_kbped"]
+
+[node name="Control" type="Control"]
+top_level = true
+z_index = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0fbet")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.18120003, 0.18120006, 0.18120003, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 70
+theme_override_constants/margin_right = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ImgButton" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Load image"
+
+[node name="CloneImgButton" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Clone image"
+
+[node name="Control" type="Control" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 18.84)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Image scale"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HSlider" type="HSlider" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 0.1
+max_value = 25.0
+step = 0.01
+value = 10.0
+
+[node name="SpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+step = 0.01
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "FPS"
+
+[node name="fpsSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+min_value = 10.0
+value = 60.0
+
+[node name="StatusIndicator" type="StatusIndicator" parent="."]
+tooltip = "Onscreen Picture"
+icon = ExtResource("2_ee4bf")
+menu = NodePath("PopupMenu")
+visible = false
+script = ExtResource("5_kbped")
+
+[node name="PopupMenu" type="PopupMenu" parent="StatusIndicator"]
+oversampling_override = 1.0
+force_native = true
+prefer_native_menu = true
+item_count = 1
+item_0/text = "Quit"
+item_0/id = 0
+
+[node name="FileDialog" type="FileDialog" parent="."]
+oversampling_override = 1.0
+title = "Open a File"
+content_scale_mode = 1
+content_scale_aspect = 4
+content_scale_stretch = 1
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.GIF")
+use_native_dialog = true
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ImgButton" to="." method="_on_img_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/CloneImgButton" to="." method="_on_clone_img_button_pressed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/HBoxContainer/HSlider" to="." method="_on_h_slider_value_changed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/HBoxContainer/SpinBox" to="." method="_on_spin_box_value_changed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/HBoxContainer2/fpsSpinBox" to="." method="_on_fps_spin_box_value_changed"]
+[connection signal="pressed" from="StatusIndicator" to="StatusIndicator" method="_on_pressed"]
+[connection signal="id_pressed" from="StatusIndicator/PopupMenu" to="StatusIndicator" method="_on_popup_menu_id_pressed"]
+[connection signal="index_pressed" from="StatusIndicator/PopupMenu" to="StatusIndicator" method="_on_popup_menu_index_pressed"]
+[connection signal="file_selected" from="FileDialog" to="." method="_on_file_dialog_file_selected"]
+[connection signal="files_selected" from="FileDialog" to="." method="_on_file_dialog_files_selected"]

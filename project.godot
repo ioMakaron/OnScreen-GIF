@@ -1,0 +1,45 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Onscreen Images"
+run/main_scene="uid://bbjpa2uj8mar8"
+config/features=PackedStringArray("4.5", "C#", "GL Compatibility")
+boot_splash/show_image=false
+boot_splash/fullsize=false
+boot_splash/use_filter=false
+config/icon="uid://dflftp4qm1buk"
+
+[autoload]
+
+G="*res://G.gd"
+
+[display]
+
+window/size/viewport_width=1366
+window/size/viewport_height=768
+window/size/mode=4
+window/size/resizable=false
+window/size/always_on_top=true
+window/size/transparent=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/per_pixel_transparency/allowed=true
+
+[dotnet]
+
+project/assembly_name="desk-character"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

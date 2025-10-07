@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://dgn3ejxfa6x25"]
+
+[ext_resource type="Script" uid="uid://c0kj70awbcs4m" path="res://window.gd" id="1_nfq5s"]
+[ext_resource type="Script" uid="uid://cfe0nx6gxnqc4" path="res://TransparencyWindow.cs" id="2_srjdr"]
+[ext_resource type="Script" uid="uid://dueuc3y0q586f" path="res://screen_borders.gd" id="3_4vd1n"]
+[ext_resource type="Script" uid="uid://cbv5qmjitp3fb" path="res://camera.gd" id="3_ifklg"]
+[ext_resource type="Script" uid="uid://c2hy2h8crlm0s" path="res://img_loader.gd" id="4_srjdr"]
+
+[node name="Window" type="Window"]
+disable_3d = true
+transparent_bg = true
+oversampling_override = 1.0
+initial_position = 1
+size = Vector2i(648, 648)
+borderless = true
+always_on_top = true
+transparent = true
+sharp_corners = true
+popup_wm_hint = true
+content_scale_aspect = 4
+script = ExtResource("1_nfq5s")
+
+[node name="Node2D" type="Node2D" parent="."]
+position = Vector2(-360, -60)
+script = ExtResource("2_srjdr")
+
+[node name="Sprite2D" type="Sprite2D" parent="Node2D"]
+texture_filter = 1
+
+[node name="Camera2D" type="Camera2D" parent="Node2D/Sprite2D"]
+zoom = Vector2(0.68, 0.68)
+script = ExtResource("3_ifklg")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Node2D"]
+script = ExtResource("3_4vd1n")
+
+[node name="ImgLoader" type="Node" parent="."]
+script = ExtResource("4_srjdr")
