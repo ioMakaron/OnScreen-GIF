@@ -11,11 +11,11 @@ jobs:
     runs-on: windows-latest
 
     env:
-      # Настройте под ваш проект:
       SOLUTION_NAME: OnScreen-GIF-WPF.sln          
       PROJECT_PATH: OnScreen-GIF-WPF/OnScreen-GIF-WPF.csproj 
       TARGET_FRAMEWORK: net9.0-windows             
-      SELF_CONTAINED: true                           
+      SELF_CONTAINED: true   
+      RUNTIME: win-x64            
 
     steps:
     - name: Checkout repository
@@ -34,7 +34,6 @@ jobs:
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
-        # Укажите ту версию SDK, которая соответствует TARGET_FRAMEWORK (например 6.x/7.x/8.x)
         dotnet-version: 9.0.x
 
     - name: Setup MSBuild (adds msbuild to PATH)
@@ -46,23 +45,25 @@ jobs:
     - name: Build solution (Release)
       run: dotnet build ${{ env.SOLUTION_NAME }} -c Release --no-restore
 
-     #- name: Run tests (if any)
-      # run: |
-       #  if ls **/*.Tests/*.csproj 1> /dev/null 2>&1; then
-        #   dotnet test -c Release --no-build
-        # else
-        #   echo "No test projects found. Skipping tests."
-        # fi
+    - name: Run tests (if any)
+      shell: pwsh
+      run: |
+        $testProjects = Get-ChildItem -Recurse -Filter *.Tests.csproj
+        if ($testProjects.Count -gt 0) {
+          dotnet test -c Release --no-build
+        } else {
+          Write-Host "No test projects found. Skipping tests."
+        }
 
     - name: Publish single-file (Release)
       run: |
-        dotnet publish "${{ env.PROJECT_PATH }}" \
-          -c Release \
-          -r ${{ env.RUNTIME }} \
-          -f ${{ env.TARGET_FRAMEWORK }} \
-          -p:PublishSingleFile=true \
-          -p:SelfContained=${{ env.SELF_CONTAINED }} \
-          -p:PublishTrimmed=false \
+        dotnet publish "${{ env.PROJECT_PATH }}" `
+          -c Release `
+          -r ${{ env.RUNTIME }} `
+          -f ${{ env.TARGET_FRAMEWORK }} `
+          -p:PublishSingleFile=true `
+          -p:SelfContained=${{ env.SELF_CONTAINED }} `
+          -p:PublishTrimmed=false `
           -o ./publish
 
     - name: List published files
@@ -71,22 +72,15 @@ jobs:
     # Optional: Sign binary (пример, раскомментируйте и настройте если используете PFX + signtool)
     # - name: Decode PFX
     #   if: ${{ secrets.Base64_Encoded_Pfx && secrets.Pfx_Key }}
+    #   shell: powershell
     #   run: |
     #     echo "${{ secrets.Base64_Encoded_Pfx }}" | Out-File -Encoding ascii cert.b64
     #     certutil -decode cert.b64 cert.pfx
-    #     # Установим в CurrentUser для signtool
     #     $pwd = '${{ secrets.Pfx_Key }}'
-    #     powershell -Command "Import-PfxCertificate -FilePath cert.pfx -CertStoreLocation Cert:\\CurrentUser\\My -Password (ConvertTo-SecureString -String $pwd -AsPlainText -Force)"
-    #   shell: powershell
+    #     Import-PfxCertificate -FilePath cert.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $pwd -AsPlainText -Force)
 
     # - name: Sign EXE with signtool (example)
-    #   if: ${{ secrets.Base64_Encoded_Pfx && secrets.Pfx_Key }}
-    #   run: |
-    #     $exe = Get-ChildItem ./publish -Filter *.exe -Recurse | Select-Object -First 1
-    #     signtool sign /fd SHA256 /a /f cert.pfx /p "${{ secrets.Pfx_Key }}" $exe.FullName
-    #   shell: powershell
-
-    - name: Upload published artifact
+ 
       uses: actions/upload-artifact@v4
       with:
         name: on-screen-player-publish
