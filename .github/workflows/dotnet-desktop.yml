@@ -11,11 +11,12 @@ jobs:
     runs-on: windows-latest
 
     env:
-      SOLUTION_NAME: OnScreen-GIF-WPF.sln          
-      PROJECT_PATH: OnScreen-GIF-WPF/OnScreen-GIF-WPF.csproj 
-      TARGET_FRAMEWORK: net9.0-windows             
-      SELF_CONTAINED: true   
-      RUNTIME: win-x64            
+      # Настройте под ваш проект:
+      SOLUTION_NAME: OnScreen-GIF-WPF.sln
+      PROJECT_PATH: OnScreen-GIF-WPF/OnScreen-GIF-WPF.csproj
+      TARGET_FRAMEWORK: net9.0-windows
+      SELF_CONTAINED: true
+      RUNTIME: win-x64
 
     steps:
     - name: Checkout repository
@@ -36,7 +37,7 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Setup MSBuild (adds msbuild to PATH)
+    - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
     - name: Restore solution
@@ -69,7 +70,7 @@ jobs:
     - name: List published files
       run: dir publish
 
-    # Optional: Sign binary (пример, раскомментируйте и настройте если используете PFX + signtool)
+    # --- Начало закомментированных шагов по подписи ---
     # - name: Decode PFX
     #   if: ${{ secrets.Base64_Encoded_Pfx && secrets.Pfx_Key }}
     #   shell: powershell
@@ -80,8 +81,15 @@ jobs:
     #     Import-PfxCertificate -FilePath cert.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $pwd -AsPlainText -Force)
 
     # - name: Sign EXE with signtool (example)
- 
-      uses: actions/upload-artifact@v4
+    #   if: ${{ secrets.Base64_Encoded_Pfx && secrets.Pfx_Key }}
+    #   shell: powershell
+    #   run: |
+    #     $exe = Get-ChildItem ./publish -Filter *.exe -Recurse | Select-Object -First 1
+    #     signtool sign /fd SHA256 /a /f cert.pfx /p "${{ secrets.Pfx_Key }}" $exe.FullName
+
+
+    - name: Upload published artifact
+      uses: actions/upload-artifact@v3
       with:
-        name: on-screen-player-publish
-        path: publish
+        name: published-artifact
+        path: ./publish
