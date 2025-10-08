@@ -13,7 +13,7 @@ jobs:
     env:
       # Настройте под ваш проект:
       SOLUTION_NAME: OnScreen-GIF-WPF.sln
-      PROJECT_PATH: OnScreen-GIF-WPF/OnScreen-GIF-WPF.csproj
+      PROJECT_PATH: OnScreen-GIF-WPF.csproj
       TARGET_FRAMEWORK: net9.0-windows
       SELF_CONTAINED: true
       RUNTIME: win-x64
