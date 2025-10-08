@@ -86,10 +86,10 @@ jobs:
     #   run: |
     #     $exe = Get-ChildItem ./publish -Filter *.exe -Recurse | Select-Object -First 1
     #     signtool sign /fd SHA256 /a /f cert.pfx /p "${{ secrets.Pfx_Key }}" $exe.FullName
-
+    # --- Конец закомментированных шагов ---
 
     - name: Upload published artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@latest
       with:
         name: published-artifact
         path: ./publish
