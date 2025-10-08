@@ -1,64 +1,29 @@
-name: .NET Desktop (Build & Publish)
+name: Build and Release
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  release:
+    types: [published]
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: windows-latest
 
-    env:
-      # Настройте под ваш проект:
-      SOLUTION_NAME: OnScreen-GIF-WPF.sln
-      PROJECT_PATH: OnScreen-GIF-WPF.csproj
-      TARGET_FRAMEWORK: net9.0-windows
-      SELF_CONTAINED: true
-      RUNTIME: win-x64
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
       with:
-        fetch-depth: 0
+        dotnet-version: '9.0.x'
 
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: nuget-packages-${{ runner.os }}-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          nuget-packages-${{ runner.os }}-
-
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Restore solution
-      run: dotnet restore ${{ env.SOLUTION_NAME }}
-
-    - name: Build solution (Release)
-      run: dotnet build ${{ env.SOLUTION_NAME }} -c Release --no-restore
-
-    - name: Run tests (if any)
-      shell: pwsh
-      run: |
-        $testProjects = Get-ChildItem -Recurse -Filter *.Tests.csproj
-        if ($testProjects.Count -gt 0) {
-          dotnet test -c Release --no-build
-        } else {
-          Write-Host "No test projects found. Skipping tests."
-        }
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+      env:
+        PROJECT_PATH: OnScreen-GIF-WPF/OnScreen-GIF-WPF.csproj
 
     - name: Publish single-file (Release)
       run: |
-        dotnet publish "${{ env.PROJECT_PATH }}" `
+        dotnet publish ${{ env.PROJECT_PATH }} `
           -c Release `
           -r ${{ env.RUNTIME }} `
           -f ${{ env.TARGET_FRAMEWORK }} `
@@ -66,30 +31,20 @@ jobs:
           -p:SelfContained=${{ env.SELF_CONTAINED }} `
           -p:PublishTrimmed=false `
           -o ./publish
+      shell: pwsh
+      env:
+        PROJECT_PATH: OnScreen-GIF-WPF.csproj
+        RUNTIME: win-x64
+        TARGET_FRAMEWORK: net9.0-windows
+        SELF_CONTAINED: true
 
-    - name: List published files
-      run: dir publish
-
-    # --- Начало закомментированных шагов по подписи ---
-    # - name: Decode PFX
-    #   if: ${{ secrets.Base64_Encoded_Pfx && secrets.Pfx_Key }}
-    #   shell: powershell
-    #   run: |
-    #     echo "${{ secrets.Base64_Encoded_Pfx }}" | Out-File -Encoding ascii cert.b64
-    #     certutil -decode cert.b64 cert.pfx
-    #     $pwd = '${{ secrets.Pfx_Key }}'
-    #     Import-PfxCertificate -FilePath cert.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $pwd -AsPlainText -Force)
-
-    # - name: Sign EXE with signtool (example)
-    #   if: ${{ secrets.Base64_Encoded_Pfx && secrets.Pfx_Key }}
-    #   shell: powershell
-    #   run: |
-    #     $exe = Get-ChildItem ./publish -Filter *.exe -Recurse | Select-Object -First 1
-    #     signtool sign /fd SHA256 /a /f cert.pfx /p "${{ secrets.Pfx_Key }}" $exe.FullName
-    # --- Конец закомментированных шагов ---
-
-    - name: Upload published artifact
-      uses: actions/upload-artifact@v4
+    - name: Upload release asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: published-artifact
-        path: ./publish
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./publish/OnScreen-GIF-WPF.exe    # укажите точный файл или архив
+        asset_name: OnScreen-GIF-WPF.exe
+        asset_content_type: application/octet-stream
