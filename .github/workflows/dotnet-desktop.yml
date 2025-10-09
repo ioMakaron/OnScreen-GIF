@@ -69,25 +69,10 @@ jobs:
         run: |
           Compress-Archive -Path ./publish/* -DestinationPath ./publish/OnScreen-GIF-WPF.zip -Force
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: create release
+        uses: ncipollo/release-action@v1.11.2
         with:
-          tag_name: ${{ steps.taggen.outputs.tag_name }}
-          release_name: ${{ steps.taggen.outputs.tag_name }}
-          body: "Automated build for commit ${{ github.sha }}"
-          target_commitish: ${{ github.sha }}
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset (zip)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/OnScreen-GIF-WPF.zip
-          asset_name: OnScreen-GIF-WPF.zip
-          asset_content_type: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
+          tag: ${{ github.ref_name }}
+          artifacts: ${{ steps.export.outputs.archive_directory }}/* # Added "/*" at the end is glob pattern match for this action
