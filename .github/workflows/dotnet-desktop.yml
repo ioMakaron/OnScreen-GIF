@@ -1,7 +1,7 @@
 name: Build and Release on push
 
 on:
-  push:    # срабатывает при каждом новом коммите (push)
+  push:    # срабатывает при каждом пуше (коммите)
 
 permissions:
   contents: write
@@ -29,11 +29,17 @@ jobs:
             exit 1
           }
           $rel = $proj.FullName.Substring($PWD.Path.Length + 1) -replace '\\','/'
-          $dirRel = Split-Path $rel -Parent
           echo "project_path=$rel" >> $GITHUB_OUTPUT
-          echo "project_dir=$dirRel" >> $GITHUB_OUTPUT
           Write-Host "Detected project: $rel"
-          Write-Host "Project dir: $dirRel"
+
+      - name: Make short SHA and tag name
+        id: taggen
+        shell: pwsh
+        run: |
+          $short = $env:GITHUB_SHA.Substring(0,7)
+          $tag = "ci-$short"
+          echo "tag_name=$tag" >> $GITHUB_OUTPUT
+          Write-Host "Using tag: $tag"
 
       - name: Restore dependencies
         shell: pwsh
@@ -63,15 +69,16 @@ jobs:
         run: |
           Compress-Archive -Path ./publish/* -DestinationPath ./publish/OnScreen-GIF-WPF.zip -Force
 
-      - name: Create GitHub Release (per commit)
+      - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}                    # уникальный тег — SHA коммита
-          release_name: ${{ github.ref_name }}-${{ github.sha }}
-          body: "Automated CI build for commit ${{ github.sha }} on ${{ github.ref }}"
+          tag_name: ${{ steps.taggen.outputs.tag_name }}
+          release_name: ${{ steps.taggen.outputs.tag_name }}
+          body: "Automated build for commit ${{ github.sha }}"
+          target_commitish: ${{ github.sha }}
           draft: false
           prerelease: false
 
