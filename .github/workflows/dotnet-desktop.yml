@@ -4,47 +4,55 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.PROJECT_PATH }}
-      env:
-        PROJECT_PATH: OnScreen-GIF-WPF/OnScreen-GIF-WPF.csproj
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+        env:
+          PROJECT_PATH: OnScreen-GIF-WPF.csproj
 
-    - name: Publish single-file (Release)
-      run: |
-        dotnet publish ${{ env.PROJECT_PATH }} `
-          -c Release `
-          -r ${{ env.RUNTIME }} `
-          -f ${{ env.TARGET_FRAMEWORK }} `
-          -p:PublishSingleFile=true `
-          -p:SelfContained=${{ env.SELF_CONTAINED }} `
-          -p:PublishTrimmed=false `
-          -o ./publish
-      shell: pwsh
-      env:
-        PROJECT_PATH: OnScreen-GIF-WPF.csproj
-        RUNTIME: win-x64
-        TARGET_FRAMEWORK: net9.0-windows
-        SELF_CONTAINED: true
+      - name: Publish single-file (Release)
+        shell: pwsh
+        env:
+          PROJECT_PATH: OnScreen-GIF-WPF.csproj
+          RUNTIME: win-x64
+          TARGET_FRAMEWORK: net9.0-windows
+          SELF_CONTAINED: true
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} `
+            -c Release `
+            -r ${{ env.RUNTIME }} `
+            -f ${{ env.TARGET_FRAMEWORK }} `
+            -p:PublishSingleFile=true `
+            -p:SelfContained=${{ env.SELF_CONTAINED }} `
+            -p:PublishTrimmed=false `
+            -o ./publish
 
-    - name: Upload release asset
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./publish/OnScreen-GIF-WPF.exe    # укажите точный файл или архив
-        asset_name: OnScreen-GIF-WPF.exe
-        asset_content_type: application/octet-stream
+      - name: Create zip of publish folder (recommended)
+        run: |
+          Compress-Archive -Path ./publish/* -DestinationPath ./publish/OnScreen-GIF-WPF.zip -Force
+        shell: pwsh
+
+      - name: Upload release asset (zip)
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./publish/OnScreen-GIF-WPF.zip
+          asset_name: OnScreen-GIF-WPF.zip
+          asset_content_type: application/zip
