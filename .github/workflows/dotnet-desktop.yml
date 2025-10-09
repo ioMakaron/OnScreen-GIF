@@ -75,4 +75,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
           tag: ${{ github.ref_name }}
-          artifacts: ${{ steps.export.outputs.archive_directory }}/* # Added "/*" at the end is glob pattern match for this action
+          artifacts: ./publish/OnScreen-GIF-WPF.zip # Added "/*" at the end is glob pattern match for this action
