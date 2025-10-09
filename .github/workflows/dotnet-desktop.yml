@@ -12,39 +12,65 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.PROJECT_PATH }}
-        env:
-          PROJECT_PATH: OnScreen-GIF-WPF.csproj
+      - name: Detect project (.csproj) and project dir
+        id: detect
+        shell: pwsh
+        run: |
+          $proj = Get-ChildItem -Path . -Filter *.csproj -Recurse | Select-Object -First 1
+          if (-not $proj) {
+            Write-Error "No .csproj found in repository"
+            exit 1
+          }
+          # относительный путь от корня репозитория
+          $rel = $proj.FullName.Substring($PWD.Path.Length + 1) -replace '\\','/'
+          $dirRel = Split-Path $rel -Parent
+          echo "project_path=$rel" >> $GITHUB_OUTPUT
+          echo "project_dir=$dirRel" >> $GITHUB_OUTPUT
+          Write-Host "Detected project: $rel"
+          Write-Host "Project dir: $dirRel"
 
+      - name: Show repo files (debug)
+        shell: pwsh
+        run: |
+          Write-Host "Root listing:"
+          Get-ChildItem -Force -Recurse -Depth 2 | Format-Table -AutoSize
+
+      - name: Restore dependencies
+        shell: pwsh
+        run: |
+          dotnet restore "${{ steps.detect.outputs.project_path }}"
+      
       - name: Publish single-file (Release)
         shell: pwsh
         env:
-          PROJECT_PATH: OnScreen-GIF-WPF.csproj
           RUNTIME: win-x64
           TARGET_FRAMEWORK: net9.0-windows
           SELF_CONTAINED: true
         run: |
-          dotnet publish ${{ env.PROJECT_PATH }} `
-            -c Release `
-            -r ${{ env.RUNTIME }} `
-            -f ${{ env.TARGET_FRAMEWORK }} `
-            -p:PublishSingleFile=true `
-            -p:SelfContained=${{ env.SELF_CONTAINED }} `
-            -p:PublishTrimmed=false `
-            -o ./publish
+          dotnet publish "${{ steps.detect.outputs.project_path }}" -c Release -r $env:RUNTIME -f $env:TARGET_FRAMEWORK -p:PublishSingleFile=true -p:SelfContained=$env:SELF_CONTAINED -p:PublishTrimmed=false -o ./publish
 
-      - name: Create zip of publish folder (recommended)
+      - name: Show publish folder contents (debug)
+        shell: pwsh
+        run: |
+          if (Test-Path ./publish) {
+            Get-ChildItem -Path ./publish -Recurse | Format-Table -AutoSize
+          } else {
+            Write-Host "Publish folder not found"
+            exit 1
+          }
+
+      - name: Create zip of publish folder
+        shell: pwsh
         run: |
           Compress-Archive -Path ./publish/* -DestinationPath ./publish/OnScreen-GIF-WPF.zip -Force
-        shell: pwsh
 
       - name: Upload release asset (zip)
         id: upload-release-asset
