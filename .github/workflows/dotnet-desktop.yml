@@ -1,14 +1,13 @@
-name: Build and Release
+name: Build and Release on push
 
 on:
-  release:
-    types: [published]
+  push:    # срабатывает при каждом новом коммите (push)
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build_and_release:
     runs-on: windows-latest
 
     steps:
@@ -20,7 +19,7 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Detect project (.csproj) and project dir
+      - name: Detect project (.csproj)
         id: detect
         shell: pwsh
         run: |
@@ -29,7 +28,6 @@ jobs:
             Write-Error "No .csproj found in repository"
             exit 1
           }
-          # относительный путь от корня репозитория
           $rel = $proj.FullName.Substring($PWD.Path.Length + 1) -replace '\\','/'
           $dirRel = Split-Path $rel -Parent
           echo "project_path=$rel" >> $GITHUB_OUTPUT
@@ -37,17 +35,10 @@ jobs:
           Write-Host "Detected project: $rel"
           Write-Host "Project dir: $dirRel"
 
-      - name: Show repo files (debug)
-        shell: pwsh
-        run: |
-          Write-Host "Root listing:"
-          Get-ChildItem -Force -Recurse -Depth 2 | Format-Table -AutoSize
-
       - name: Restore dependencies
         shell: pwsh
-        run: |
-          dotnet restore "${{ steps.detect.outputs.project_path }}"
-      
+        run: dotnet restore "${{ steps.detect.outputs.project_path }}"
+
       - name: Publish single-file (Release)
         shell: pwsh
         env:
@@ -63,7 +54,7 @@ jobs:
           if (Test-Path ./publish) {
             Get-ChildItem -Path ./publish -Recurse | Format-Table -AutoSize
           } else {
-            Write-Host "Publish folder not found"
+            Write-Error "Publish folder not found"
             exit 1
           }
 
@@ -72,13 +63,24 @@ jobs:
         run: |
           Compress-Archive -Path ./publish/* -DestinationPath ./publish/OnScreen-GIF-WPF.zip -Force
 
+      - name: Create GitHub Release (per commit)
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.sha }}                    # уникальный тег — SHA коммита
+          release_name: ${{ github.ref_name }}-${{ github.sha }}
+          body: "Automated CI build for commit ${{ github.sha }} on ${{ github.ref }}"
+          draft: false
+          prerelease: false
+
       - name: Upload release asset (zip)
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.release.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./publish/OnScreen-GIF-WPF.zip
           asset_name: OnScreen-GIF-WPF.zip
           asset_content_type: application/zip
